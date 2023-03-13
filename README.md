@@ -1,22 +1,24 @@
-# Tp_IoT_2022_LoRa_Bluetooth
+TP IoT et Réseaux Adaptés
+===========
 
-## 1. Client :
- 
-### 1. Récupération d'un paquet Mqtt sur test.mosquitto.org :  nomAP/ipaddr
+# Organisation
 
-### 2. Se connecter à une carte sur l'AP et faire une requete http donnant les valeurs nécessaire à LoRa.
+Dans le cadre de ce projet, deux approches seront adoptées. Tout d'abord la partie Publisher puis la partie Subscriber.
+Deux groupes vont collaborer, chacun mettant en place l'une de ces parties.
 
-### 3. Ecouter les données de LoRa.
+Le groupe responsable de la partie Publisher est composé de Vicor Clairgeaux, Vincent Flageul et Samuel Guérin. 
+Le groupe responsable de la partie Subscriber est composé de Lou Lécrivain et Edgar Croüs et est disponible [ici] (https://github.com/loulecrivain/iot_srt5).
 
-## 2. Serveur :
+# Première étape
+La première étape consiste à permettre la communciation via le Wi-Fi entre les deux ESP32 puis d'envoyer les paramètres LoRa en utilisant le broker MQTT. Enfin, il faudra envoyer/recevoir des données en passant par cette connexion LoRa.
+Etapes réalisées :
+- [x] connexion à un AP wifi et sub ou pub sur le topic MQTT srt/lesbv
+- [x] mise en place de la logique d'échange d'informations structurées de paramétrage LoRa via la librairie Json
+- [x] configuration de LoRa
+- [x] envoi de messages sur LoRa
 
-### Faire le serveur servant les données au Client.
-
-## 3. Ensuite...
-
-### 1. Ajouter une fonction permettant de switcher entre Serveur et Client
-
-### 2. Sur le serveur, échangez la partie LoRa par du bluetooth (ou BLE)
-
-### 3. Refaire la partie cliente pour répondre au bluetooth
-
+# Deuxième étape
+La deuxième étape consiste à supprimer la partie LoRA pour la remplacer par du Bluetooth Low Energy.
+L'utilisation du BLE nécessite l'ajout de librairies prennant beaucoup d'espace ce qui entraine l'erreur suivante :
+"Text section exceeds available space in boardLe croquis utilise 1349206 octets (102%) de l'espace de stockage de programmes. Le maximum est de 1310720 octets."
+Pour remedier à ce problème, il faudra utiliser la bibliothèque [NimBLE] (https://github.com/h2zero/NimBLE-Arduino).
