@@ -10,7 +10,7 @@
 #define SS 18 // GPIO18 -- SX127x's CS
 #define RST 14 // GPIO14 -- SX127x's RESET
 #define DI0 26 // GPIO26 -- SX127x's IRQ(Interrupt Request)
-#define freq 866E6 //fréquence
+#define freq 869E6 //fréquence
 #define sf 8 //spreading factor
 #define sb 31250 //signal bandwith      
 #define syncword 126
@@ -23,16 +23,31 @@ const char *mqtt_client_id="esp32mqtt-zen";
 const char *mqtt_topic="srt/lesbv";
 const int  mqtt_reconnect_ms_delay=5000;
 
+float d1,d2;
+int i=0;
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+union pack
+{
+  uint8_t frame[16]; // trames avec octets
+  float data[4]; // 4 valeurs en virgule flottante
+} sdp ; // paquet d’émission
+
 void setup() {
-  /*Wire.begin(21,22);
-  SHT2x.begin();
-  Serial.begin(9600); */
   Serial.begin(115200);
   setup_wifi();
   client.setServer(mqtt_server, 1883);
+  pinMode(DI0, INPUT); // signal interrupt
+  SPI.begin(SCK,MISO,MOSI,SS);
+  LoRa.setPins(SS,RST,DI0);
+  if (!LoRa.begin(freq)) {
+    Serial.println("Starting LoRa failed!");
+    while (1);
+  }
+  LoRa.setSpreadingFactor(sf);
+  LoRa.setSignalBandwidth (sb);
 }
 
 void setup_wifi(){
@@ -53,7 +68,7 @@ void mqtt_reconnect() {
     if (client.connect(mqtt_client_id)){
       Serial.println("[MQTT] connected to server !");
       // send message upon connection
-      client.publish(mqtt_topic,"{\"freq\": 866000000, \"syncword\": 126, \"spreadingFactor\": 8, \"signalBandwidth\": 31250}");
+      client.publish(mqtt_topic,"{\"freq\": 869000000, \"syncword\": 126, \"spreadingFactor\": 8, \"signalBandwidth\": 31250}");
     } else {
       Serial.print("[MQTT] failed to connect to server, rc=");
       Serial.print(client.state());
@@ -64,19 +79,23 @@ void mqtt_reconnect() {
 }
 
 void loop() {
+  int rssi;
+
   if(!client.connected()){
     mqtt_reconnect();
   }
   client.loop();
-  /* if (now - lastMsg > 5000) { ... }
-uint32_t start = micros();
-Serial.print("Humidity(%RH): ");
-Serial.print(SHT2x.GetHumidity(),1);
-Serial.print("\tTemperature(C): ");
-Serial.print(SHT2x.GetTemperature(),1);
-uint32_t stop = micros();
-Serial.print("\tRead Time: ");
-Serial.println(stop - start);
-delay(1000);
-   */
+  int packetLen;
+  packetLen=LoRa.parsePacket();
+  if(packetLen==16)
+  {
+    i=0;
+    while (LoRa.available()) {
+      sdp.frame[i]=LoRa.read();i++;
+    }
+    d1 = sdp.data[0];d2=sdp.data[1];
+    rssi=LoRa.packetRssi(); // force du signal en réception en dB
+    Serial.println(d1); Serial.println(d2);
+    Serial.println(rssi);
+  }
 }
