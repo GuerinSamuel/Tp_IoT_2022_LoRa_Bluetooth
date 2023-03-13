@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <cJSON.h>
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
@@ -65,7 +66,7 @@ void mqtt_reconnect() {
     if (client.connect(mqtt_client_id)){
       Serial.println("[MQTT] connected to server !");
       // send message upon connection
-      client.publish(mqtt_topic,"{\"freq\": 869000000, \"syncword\": 126, \"spreadingFactor\": 8, \"signalBandwidth\": 31250}");
+      client.publish(mqtt_topic,"{\"SERVICE_UUID\": 4fafc201-1fb5-459e-8fcc-c5c9c331914b, \"CHARACTERISTIC_UUID\": beb5483e-36e1-4688-b7f5-ea07361b26a8}");
     } else {
       Serial.print("[MQTT] failed to connect to server, rc=");
       Serial.print(client.state());
